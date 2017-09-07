@@ -1,8 +1,8 @@
 #include "stdafx.h"
 #include "Triangle.h"
 
-Triangle::Triangle(vec3 p1, vec3 p2, vec3 p3, vec3 n1, vec3 n2, vec3 n3, vec3 col)
-{
+Triangle::Triangle(vec3 p1, vec3 p2, vec3 p3, vec3 n1, vec3 n2, vec3 n3, vec3 col) {
+	
 	pOne = p1;
 	pTwo = p2;
 	pThree = p3;
@@ -16,12 +16,10 @@ Triangle::Triangle(vec3 p1, vec3 p2, vec3 p3, vec3 n1, vec3 n2, vec3 n3, vec3 co
 	shapeColour.z = col.z;
 }
 
-Triangle::Triangle()
-{
-}
+Triangle::Triangle(){}
 
-bool Triangle::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
-{
+bool Triangle::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist) {
+	
 	vec3 edgeOne, edgeTwo;	// Used to calculate e1 and e2 in barycentric equation
 
 	// Co-Ordinate Calculation
@@ -30,20 +28,18 @@ bool Triangle::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 	
 	float denominator = dot(edgeOne, cross(dir, edgeTwo));
 	u = dot((ray - pOne), cross(dir, edgeTwo)) / denominator;	// u = ((o - a) dot (d x e2)) / e1 dot (d x e2)
-	v = dot(dir, (cross(ray - pOne, edgeOne))) / denominator; // v = d dot ((o - a) x e1) / e1 dot (d x e2)
+	v = dot(dir, (cross(ray - pOne, edgeOne))) / denominator;	// v = d dot ((o - a) x e1) / e1 dot (d x e2)
 	
 	w = 1 - u - v; 	// 3rd Barycentric Co-Ordinate
 
 	t = dot(edgeTwo, (cross(ray - pOne, edgeOne))) / denominator;
 
 	// Check if point is in triangle
-	if (u < 0 || u > 1)
-	{
+	if (u < 0 || u > 1) {
 		// u = False
 		return false;
 	}
-	else if (v < 0 || u + v > 1)
-	{
+	else if (v < 0 || u + v > 1) {
 		// u + v & False 
 		return false;
 	}
@@ -53,8 +49,14 @@ bool Triangle::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 	return true;
 }
 
-vec3 Triangle::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], vec3 camSpace, float& dist, int k)
-{
+//////////////////////////
+//						//
+// Colour calculation	//
+//						//
+//////////////////////////
+
+vec3 Triangle::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], vec3 camSpace, float& dist, int k) {
+	
 	vec3 pixelColour;
 	vec3 ambientColour, diffuseColour, specularColour;
 	vec3 lightRay;
@@ -91,13 +93,10 @@ vec3 Triangle::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[]
 	vec3 shadowCollisions[2];
 
 	// For all Shapes
-	for (int a(0); a < 5; a++)
-	{
-		if (a != k && t <= 0)
-		{
+	for (int a(0); a < 5; a++) {
+		if (a != k && t <= 0) {
 			bool shadowRay = shapes[a]->detect(collide[0], lightRay, shadowCollisions, shadowDistance);
-			if (shadowRay == true && shadowDistance < shadowT)
-			{
+			if (shadowRay == true && shadowDistance < shadowT) {
 				pixelColour = ambientColour + diffuseColour + specularColour;
 			}
 			else
@@ -109,6 +108,4 @@ vec3 Triangle::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[]
 	return pixelColour;
 }
 
-Triangle::~Triangle()
-{
-}
+Triangle::~Triangle() {}

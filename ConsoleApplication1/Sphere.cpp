@@ -3,8 +3,13 @@
 
 #define MAX_DEPTH 5
 
-Sphere::Sphere(vec3 pos, vec3 colour, float rad)
-{
+//////////////////////////////////////////////////////////////////////////
+//																		//
+// Take pre-defined positions and colour vectors to construct spheres	//
+//																		//
+//////////////////////////////////////////////////////////////////////////
+
+Sphere::Sphere(vec3 pos, vec3 colour, float rad) {
 	position.x = pos.x;
 	position.y = pos.y;
 	position.z = pos.z;
@@ -16,19 +21,22 @@ Sphere::Sphere(vec3 pos, vec3 colour, float rad)
 	radius = rad;
 }
 
-// Make operation return true if there is a collision between the ray and a sphere
-// Return false for any iteration where there is no collision with a sphere
-// Pass through each sphere to determine if collision occurs with any sphere
+//////////////////////////////////////////////////////////////////////////////////
+//																				//
+// Make operation return true if there is a collision between ray and a sphere	//
+// Return false for any iteration where there is no collision with a sphere		//
+// Pass through each sphere to determine if collision occurs with any sphere	//
+//																				//
+//////////////////////////////////////////////////////////////////////////////////
 
-bool Sphere::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
-{
-	// First collision point, second collision point 
-	vec3 firstCol, secondCol;
+bool Sphere::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist) {
+
+	vec3 firstCol, secondCol; // First collision point, second collision point 
 	vec3 collisionVecs[2] { firstCol, secondCol }; // Container array for looping
 
 	float colOne = 0;
 	float colTwo = 0;
-	float collisions[2] { colOne, colTwo }; // Container array for looping
+	float collisions[2] { colOne, colTwo }; // Container array for looping, faster calculations
 
 	// Vector storing scalar values of distance between ray and sphere origin
 	// Equivalent to: l = c - o
@@ -42,25 +50,27 @@ bool Sphere::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 
 	// Equivalent to: t(ca) = l dot d
 	float traj;
-	traj = (length.x * dir.x) + (length.y * dir.y) + (length.z * dir.z); // Provides a scalar value that, if positive, means a collision is possible
-	if (traj < 0)
-	{
-		return false; // If collision is not possible, return false
+	traj = (length.x * dir.x) + (length.y * dir.y) + (length.z * dir.z); // If positive, a collision is possible
+	if (traj < 0) {
+		return false; // If collision is not possible
 	}
-	else
-	{
+	else {
 		float sphereCentreRay;
 		float lenSqu = (length.x * length.x) + (length.y * length.y) + (length.z * length.z);
-		// Calculate scalar value that states distance of ray and it's direction away from sphere centre
-		// If this value is larger than the radius, ray never intersects sphere
-		// Equivalent to: s^2 = l^2 - t(ca)^2 --> s = sqrt(l^2 - t(ca)^2)
-		sphereCentreRay = sqrt(lenSqu - (traj * traj));
-		if (sphereCentreRay > radius)
-		{
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////
+		//																									//
+		// Calculate scalar value that states distance of ray and it's direction away from sphere centre	//
+		// If value is larger than radius, ray never intersects sphere										//
+		// Equivalent to: s^2 = l^2 - t(ca)^2 --> s = sqrt(l^2 - t(ca)^2)									//
+		//																									//
+		//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+		sphereCentreRay = sqrt(lenSqu - (traj * traj));	
+		if (sphereCentreRay > radius) {
 			return false;
 		}
-		else
-		{
+		else {
 			float sphereCollision;
 			// Equivalent to: t(hc) = sqrt(r^2 - s^2)
 			sphereCollision = sqrt((radius * radius) - (sphereCentreRay * sphereCentreRay));
@@ -75,22 +85,24 @@ bool Sphere::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 			else
 				collisionLength = colTwo;
 
-			// Makes calculations work afaik
 			collisions[0] = colOne;
 			collisions[1] = colTwo;
+			
 			// Returns all values 
-
-			for (int i(0); i < 2; i++)
-			{
+			for (int i(0); i < 2; i++) {
 				// Returns vectors for collision points with scalar form:
 				// p = o + t(n)d
 				collisionVecs[i] = ray + (collisions[i] * dir);
 
 				collide[i] = collisionVecs[i];
 
-				// Shadow Calculation
-				// n = (p - c) / ||p - c||
-				// Using OpenGL Book Page 506
+				//////////////////////////////
+				//							//
+				// Shadow Calculation		//
+				// n = (p - c) / ||p - c||	//
+				//							//
+				//////////////////////////////
+
 				vec3 dirNorm, normal, normAlter;
 				normAlter.x = collisionVecs[i].x + (collisionVecs[i].x - position.x) * 1e-4;
 				normAlter.y = collisionVecs[i].y + (collisionVecs[i].y - position.y) * 1e-4;
@@ -100,8 +112,7 @@ bool Sphere::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 				normal = normalize(collisionVecs[0] - position);	// N Vector Normalised
 				
 				// Recurse call for reflections
-				for (int r(0); r < 6; r++)
-				{
+				for (int r(0); r < 6; r++) {
 					reflections(dir, normal);
 				}
 
@@ -111,8 +122,15 @@ bool Sphere::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 	return true && dist;
 }
 
-vec3 Sphere::reflections(vec3 dir, vec3 norm)
-{
+//////////////////////////////////////////////////////////////////
+//																//
+// Calculates direction of the ray once reflected off of shape	//
+// Takes ray direction and collision position normal vector		//
+// Returns new ray vector direction								//
+//																//
+//////////////////////////////////////////////////////////////////
+
+vec3 Sphere::reflections(vec3 dir, vec3 norm) {
 	vec3 refRay;
 
 	refRay = dir - (((dot(dir, norm)) * norm) * ((dot(dir, norm)) * norm));
@@ -122,9 +140,9 @@ vec3 Sphere::reflections(vec3 dir, vec3 norm)
 
 // Lighting array = position, diffuse, specular, ambient
 // Collide takes in collision points of ray with object
-vec3 Sphere::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], vec3 camSpace, float& dist, int k)
-{
+vec3 Sphere::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], vec3 camSpace, float& dist, int k) {
 	vec3 pixelColour;
+
 	// Ambient Calculation
 	vec3 ambientColour, diffuseColour, specularColour;
 	
@@ -133,15 +151,14 @@ vec3 Sphere::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], 
 	// Diffuse Calculation	
 	vec3 lightRay, pixelNormal;	// l = s - p, n = p - c
 
-	for (int i(0); i < 2; i++)
-	{
+	for (int i(0); i < 2; i++) {
 		// l = s - p
-		lightRay = lighting[0] - collide[i];		// Create light ray from point of intersection to light source
+		lightRay = lighting[0] - collide[i];	// Create light ray from point of intersection to light source
 		pixelNormal = collide[i] - position;
 
 		float shadowT = FLT_MAX;
 
-		vec3 rayNorm = normalize(lightRay);	// Used in shadow creation
+		vec3 rayNorm = normalize(lightRay);		// Used in shadow creation
 		vec3 pixelNorm = normalize(pixelNormal);
 
 		double diffuseNormalise = dot(rayNorm, pixelNorm);
@@ -172,13 +189,10 @@ vec3 Sphere::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], 
 		intersection.z = collide[i].z + (collide[i].z - position.z) * 1e-4;
 
 		// For all Shapes
-		for (int a(0); a < 5; a++)
-		{
-			if (a != k)
-			{
+		for (int a(0); a < 5; a++) {
+			if (a != k) {
 				bool shadowRay = shapes[a]->detect(intersection, lightRay, shadowCollisions, shadowDistance);
-				if (shadowRay == true && shadowDistance < shadowT)
-				{
+				if (shadowRay == true && shadowDistance < shadowT) {
 					pixelColour = ambientColour;
 				}
 				else
@@ -190,11 +204,7 @@ vec3 Sphere::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], 
 	return pixelColour;
 }
 
-Sphere::Sphere()
-{
-}
+Sphere::Sphere(){}
 
 
-Sphere::~Sphere()
-{
-}
+Sphere::~Sphere(){}

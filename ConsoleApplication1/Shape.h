@@ -1,17 +1,23 @@
 #pragma once
 
-//#include "Sphere.h" - Do not inlcude below functions as this will cause circular dependencies 
-
 #include <glm/glm.hpp>
 #include <iostream>
 #include <fstream>
 
-using namespace glm;	// Keep this in - all primitive classes use for vec3 def
+using namespace glm;
 using namespace std;
 
 class Shape
 {
 public:
+
+	//////////////////////////////////////////////////////
+	//													//
+	// Virtuals enable all instances of shape classes	//
+	// Default instances are below						//
+	//													//
+	//////////////////////////////////////////////////////
+
 	virtual bool detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 	{
 		std::cout << "Passed" << std::endl;

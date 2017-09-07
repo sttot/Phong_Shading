@@ -1,27 +1,22 @@
 #include "stdafx.h"
 #include "Plane.h"
 
-Plane::Plane(vec3 pos, vec3 norm, vec3 colour)
-{
+Plane::Plane(vec3 pos, vec3 norm, vec3 colour) {
 	position = pos;
 	normal = norm;
 	shapeColour = colour;
 }
 
-Plane::Plane()
-{
+Plane::Plane() {
 }
 
-bool Plane::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
-{
+bool Plane::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist) {
 	double test = dot(dir, normal);
 
-	if (test <= 0.01)
-	{
+	if (test <= 0.01) {
 		return false;
 	}
-	else
-	{
+	else {
 		t = dot((position - ray), normal) / test;
 
 		collide[0] = ray + (t * dir);
@@ -29,8 +24,7 @@ bool Plane::detect(vec3 ray, vec3 dir, vec3 collide[], float& dist)
 	return true;
 }
 
-vec3 Plane::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], vec3 camSpace, float& dist, int k)
-{
+vec3 Plane::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], vec3 camSpace, float& dist, int k) {
 	vec3 pixelColour;
 	vec3 ambientColour, diffuseColour, specularColour;
 	vec3 lightRay, pixelNormal;
@@ -45,8 +39,7 @@ vec3 Plane::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], v
 
 	double diffuseNormalise = dot(rayNorm, pixelNorm);
 
-	if (diffuseNormalise < 0)
-	{
+	if (diffuseNormalise < 0) {
 		diffuseNormalise = -diffuseNormalise;
 	}
 
@@ -72,13 +65,10 @@ vec3 Plane::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], v
 	vec3 shadowCollisions[2];
 	
 	// For all Shapes
-	for (int a(0); a < 5; a++)
-	{
-		if (a != k && t <= 0)
-		{
+	for (int a(0); a < 5; a++) {
+		if (a != k && t <= 0) {
 			bool shadowRay = shapes[a]->detect(collide[0], lightRay, shadowCollisions, shadowDistance);
-			if (shadowRay == true && shadowDistance < shadowT)
-			{
+			if (shadowRay == true && shadowDistance < shadowT) {
 				pixelColour = ambientColour;
 			}
 			else
@@ -88,6 +78,5 @@ vec3 Plane::colour(vec3 lighting[], vec3 collide[], vec3 dir, Shape *shapes[], v
 	return pixelColour;
 }
 
-Plane::~Plane()
-{
+Plane::~Plane(){
 }
